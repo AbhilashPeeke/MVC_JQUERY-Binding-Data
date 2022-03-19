@@ -1,0 +1,248 @@
+﻿
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
+
+<script type="text/javascript">
+   
+    $(document).ready(function () {
+        LoadEmployeed();
+        
+    });
+
+
+    function EditEmployee(EmployeeId) {
+        $.ajax({
+            async: true,
+            type: 'GET',
+            url: '/Employee/EditEmployee',
+            data: { EmployeeId: EmployeeId },
+            dataType: 'JSON',
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                $("#txtFirstName").val(data.FirstName);
+                $("#txtLastName").val(data.LastName);
+                $("#txtDepartment").val(data.Department);
+                $("#txtJobType").val(data.JobType);
+                $("#txtSalary").val(data.Salary);
+                $("#txtCities").val(data.CityId);
+                $("#txtEmployeeId").val(data.EmployeeId);
+                $("#btnSaveUpdate").val('Update Employee');
+            },
+            error() {
+                alert("Some problem to Update Employee details....!");
+            }
+
+        });
+    }
+
+    function DeleteEmployee(EmployeeId) {
+        var EmployeeId = { EmployeeId: EmployeeId }
+        confirm("Are You Sure To Delete The Employee....!");
+        $.ajax({
+            async: true,
+            type: 'POST',
+            url: '/Employee/DeleteEmployee',
+            data: JSON.stringify(EmployeeId),
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data.Success) {
+                    alert(data.Message);
+                    LoadEmployeed();
+                }
+                else {
+                    alert(data.Message);
+                }
+            },
+            error: function() {
+                alert("Problem to Delete the Employee...!");
+            }
+
+        });
+
+    }
+
+    function ResteEmployee() {
+        $("#txtDepartment").val("");
+        $("#txtEmployeeId").val("0");
+        $("#txtFirstName").val("");
+        $("#txtLastName").val("");
+        $("#txtJobType").val("");
+        $("#txtSalary").val("");
+        $("#ErrorMessage").empty();
+        $("#btnSaveUpdate").val("Add Employee");
+        $("Cities").val("1");
+
+    }
+
+    function AddEmployee() {
+        var EmployeeViewModel = {
+            EmployeeId: $("#txtEmployeeId").val(),
+            FirstName:  $("#txtFirstName").val(),
+            LastName: $("#txtLastName").val(),
+            Department:  $("#txtDepartment").val(),
+            JobType:  $("#txtJobType").val(),
+            Salary:  $("#txtSalary").val(),
+            CityId:  $("#Cities").val()
+        }
+
+        var ErrorMessage = "";
+
+        $.ajax({
+            async: true,
+            type: 'POST',
+            url: '/Employee/AddUpdateEmployee',
+            data: JSON.stringify(EmployeeViewModel),
+            dataType: 'JSON',
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data.Success) {
+                    alert(data.Message);
+                    LoadEmployeed();
+                    ResteEmployee();
+                }
+                else {
+                    $.each(data.ErrorList, function (index, value) {
+                        ErrorMessage += value + '<br>' ;
+                    });
+                    $("#ErrorMessage").empty();
+                    $("#ErrorMessage").append(ErrorMessage)
+                }
+            },
+            error: function () {
+                alert('there is some problem to add employee....');
+            }
+
+        });
+    }
+
+    function LoadEmployeed() {
+        var BindEmployee = "";
+
+        $.ajax({
+            async: true,
+            type: 'GET',
+            url: '/Employee/GetAllEmployee',
+            dataType: 'JSON',
+            contentType: 'application/json;Charset=utf-8',
+            success: function (response) {
+                if (response.Success) {
+                    $.each(response.data, function (index, value) {
+                        BindEmployee += '<tr><td>' +
+                             value.FirstName +
+                            '<td>' +
+                             value.LastName +
+                            '<td>' +
+                             value.Department +
+                            '<td>' +
+                             value.JobType +
+                            '<td>' +
+                             value.Salary +
+                            '<td>' +
+                             value.Name +
+                            '<td>' +
+                            '<input type = "button" value = "Edit" name = "Edit" onclick = "EditEmployee(' + value.EmployeeId + ')"/>  <input type = "button" value = "Delete" name = "Delete" onclick = "DeleteEmployee(' + value.EmployeeId + ')"/>' +
+                            '</td></tr>';
+                    });
+                    $("#tblEmployee").find('tr:gt(0)').remove();
+                    $("#tblEmployee").append(BindEmployee);
+                }
+            },
+            error: function () {
+                alert("there is Problem to load Details...");
+            }
+        });
+    }
+
+</script>
+<br />
+<br />
+<table style="width:100%" class="table-bordered" id="tblEmployee">
+    <thead>
+        <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Department</th>
+            <th>Job Type</th>
+            <th>Salary</th>
+            <th>City</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+</table>
+
+<br />
+<br />
+
+<input type="hidden" value="0" id="txtEmployeeId" />
+
+<br />
+        <div class="text-danger" id="ErrorMessage">
+
+        </div>
+<br />
+
+<table>
+    <tr>
+        <td>
+            First Name : 
+        </td>
+            <td>
+                <input type="text" name="FirstName" id="txtFirstName" />
+            </td>        
+    </tr>
+    <tr>
+        <td>
+            Last Name : 
+            </td>
+        <td>
+            <input type="text" name="lastName" id="txtLastName" />
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Department :
+        </td>
+        <td>
+            <input type="text" name="Department" id="txtDepartment" />
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Job Type :
+        </td>
+        <td>
+            <input type="text" name="Job Type" id="txtJobType" />
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Salary :
+        </td>
+        <td>
+            <input type="text" name="Salary" id="txtSalary" />
+        </td>
+    </tr>
+    <tr>
+        <td>
+            City :
+        </td>
+        <td>
+          @Html.DropDownList("Cities",ViewBag.Cities as IEnumerable<SelectListItem>)</td>        
+    </tr>
+    <tr>
+        <td>
+
+        </td>
+        <td>
+            <table>
+                <tr>
+                    <td>
+                        <input id="btnSaveUpdate" type="button" value="Add Employee" onclick="AddEmployee()" />
+                    </td>                  
+                    <td>
+                        <input type="button" value="Reset" onclick="ResetEmployee()" />
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
